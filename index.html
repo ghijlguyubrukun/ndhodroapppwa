@@ -28,14 +28,13 @@
         }
         .alarm-active { animation: flashRed 1s infinite ease-in-out; }
         
-        /* Menyembunyikan scrollbar bawaan agar rapi */
         ::-webkit-scrollbar { width: 0px; }
     </style>
 </head>
 <body class="text-white min-h-screen flex justify-center relative overflow-hidden">
 
     <!-- ========================================== -->
-    <!-- TAMPILAN UTAMA (PORTAL)                    -->
+    <!-- TAMPILAN UTAMA (PORTAL WARGA)              -->
     <!-- ========================================== -->
     <div id="view-public" class="w-full max-w-md p-5 page-active page-transition h-screen overflow-y-auto pb-24 relative z-10">
         
@@ -78,18 +77,15 @@
 
         <!-- Tombol PWA Instal Aplikasi Cerdas (Hanya Muncul jika didukung) -->
         <div id="install-container" class="hidden mb-6">
-            <button onclick="instalAplikasi()" class="w-full py-3.5 bg-gradient-to-r from-blue-600 to-blue-500 rounded-xl text-xs font-bold shadow-lg shadow-blue-500/30 active:scale-95 transition flex items-center justify-center gap-2 border border-blue-400">
+            <button onclick="instalAplikasi()" class="w-full py-3.5 bg-gradient-to-r from-blue-600 to-blue-500 rounded-xl text-xs font-bold shadow-lg shadow-blue-500/30 active:scale-95 transition flex items-center justify-center gap-2 border border-blue-400 animate-pulse">
                 <i class="fa-solid fa-download"></i> INSTAL APLIKASI
             </button>
         </div>
 
-        <!-- Tombol Admin & Tes Alarm -->
-        <div class="flex justify-between items-center mt-2 pt-4 border-t border-slate-800">
-            <button onclick="triggerAlarm()" class="text-slate-600 hover:text-red-400 text-[10px] uppercase font-bold tracking-widest transition">
-                <i class="fa-solid fa-bell mr-1"></i> Uji Alarm
-            </button>
-            <button id="btn-admin" onclick="bukaModalLogin()" class="text-slate-600 hover:text-slate-400 text-[10px] uppercase font-bold tracking-widest transition">
-                <i class="fa-solid fa-gear mr-1"></i> Admin
+        <!-- Tombol Admin (Otomatis Hilang Jika Sudah Jadi Aplikasi Android) -->
+        <div id="admin-container" class="mt-2 pt-4 border-t border-slate-800 text-center">
+            <button onclick="bukaModalLogin()" class="text-slate-600 hover:text-slate-400 text-[10px] uppercase font-bold tracking-widest transition">
+                <i class="fa-solid fa-gear mr-1"></i> Pengaturan Admin
             </button>
         </div>
     </div>
@@ -117,11 +113,17 @@
     <!-- ========================================== -->
     <div id="view-admin" class="w-full max-w-md bg-slate-900 z-50 page-hidden page-transition h-screen flex flex-col absolute top-0 left-0">
         <div class="bg-slate-800 border-b border-slate-700 p-4 flex justify-between items-center shrink-0 shadow-md">
-            <h2 class="font-bold text-white text-sm"><i class="fa-solid fa-shield-halved mr-2 text-blue-500"></i>Konfigurasi Gateway</h2>
+            <h2 class="font-bold text-white text-sm"><i class="fa-solid fa-shield-halved mr-2 text-blue-500"></i> Konfigurasi Gateway</h2>
             <button onclick="keluarAdmin()" class="text-slate-400 hover:text-red-400 text-xl"><i class="fa-solid fa-times"></i></button>
         </div>
 
         <div class="p-4 space-y-6 flex-1 overflow-y-auto pb-24">
+            
+            <!-- Tombol Uji Alarm Dipindah Ke Sini -->
+            <button onclick="triggerAlarm()" class="w-full py-3 bg-red-600/20 text-red-400 border border-red-600/50 rounded-xl text-xs font-bold hover:bg-red-600/30 transition shadow-inner">
+                <i class="fa-solid fa-bell mr-2"></i> UJI COBA ALARM & GETAR
+            </button>
+
             <!-- Pengaturan Umum -->
             <div class="bg-slate-800 p-4 rounded-xl border border-slate-700 shadow-md">
                 <label class="text-[10px] text-slate-400 mb-1 block font-bold uppercase">Nama Portal</label>
@@ -140,9 +142,7 @@
                     <h3 class="text-xs font-bold text-blue-400 uppercase tracking-wider">Daftar Menu</h3>
                     <button onclick="tambahAdminTautan()" class="text-[10px] bg-blue-600 hover:bg-blue-500 text-white px-2 py-1 rounded shadow">+ Tambah</button>
                 </div>
-                <div id="admin-tautan-container" class="space-y-4">
-                    <!-- Form tautan di-generate oleh JS -->
-                </div>
+                <div id="admin-tautan-container" class="space-y-4"></div>
             </div>
 
             <!-- Pengaturan Pengumuman -->
@@ -151,9 +151,7 @@
                     <h3 class="text-xs font-bold text-purple-400 uppercase tracking-wider">Pengumuman & Agenda</h3>
                     <button onclick="tambahAdminPengumuman()" class="text-[10px] bg-purple-600 hover:bg-purple-500 text-white px-2 py-1 rounded shadow">+ Tambah</button>
                 </div>
-                <div id="admin-pengumuman-container" class="space-y-4">
-                    <!-- Form pengumuman di-generate oleh JS -->
-                </div>
+                <div id="admin-pengumuman-container" class="space-y-4"></div>
             </div>
         </div>
 
@@ -191,7 +189,6 @@
         </div>
     </div>
 
-
     <!-- ========================================== -->
     <!-- LOGIKA SISTEM UTAMA (JAVASCRIPT)           -->
     <!-- ========================================== -->
@@ -217,40 +214,45 @@
         let adminTautanTemp = [];
         let adminPengumumanTemp = [];
 
-        // --- SISTEM PWA & TOMBOL INSTAL CERDAS ---
+        // --- 1. SISTEM PWA & TOMBOL INSTAL CERDAS (PERBAIKAN) ---
+        // Membuat manifest URI secara langsung agar lebih stabil dideteksi Chrome Mobile
         const PWA_ICON_BASE64 = "data:image/svg+xml;base64,PHN2ZyB4bWxucz0naHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmcnIHZpZXdCb3g9JzAgMCAyNCAyNCcgZmlsbD0nIzNiODJmNic+PHBhdGggZD0nTTQgMmgxNmEyIDIgMCAwIDEgMiAydjE2YTIgMiAwIDAgMS0yIDJINGEyIDIgMCAwIDEtMi0yVjRhMiAyIDAgMCAxIDItMnoiLz48L3N2Zz4=";
         const manifestData = {
             "name": "Portal Warga",
             "short_name": "Portal Warga",
-            "start_url": window.location.href,
+            "start_url": window.location.pathname, // Memastikan start_url akurat dengan github pages
             "display": "standalone",
             "background_color": "#0f172a",
             "theme_color": "#0f172a",
-            "icons": [{"src": PWA_ICON_BASE64, "sizes": "192x192 512x512", "type": "image/svg+xml", "purpose": "any maskable"}]
+            "icons": [{"src": PWA_ICON_BASE64, "sizes": "512x512", "type": "image/svg+xml", "purpose": "any maskable"}]
         };
-        const manifestBlob = new Blob([JSON.stringify(manifestData)], {type: 'application/manifest+json'});
-        document.head.insertAdjacentHTML('beforeend', `<link rel="manifest" href="${URL.createObjectURL(manifestBlob)}">`);
+        const manifestUrl = 'data:application/manifest+json;charset=utf-8,' + encodeURIComponent(JSON.stringify(manifestData));
+        document.head.insertAdjacentHTML('beforeend', `<link rel="manifest" href="${manifestUrl}">`);
 
-        const swCode = `self.addEventListener('install', e => self.skipWaiting()); self.addEventListener('activate', e => self.clients.claim()); self.addEventListener('fetch', e => {});`;
+        // Service Worker kuat agar PWA bisa diinstal dan berjalan offline minimalis
+        const swCode = `
+            self.addEventListener('install', e => self.skipWaiting());
+            self.addEventListener('activate', e => self.clients.claim());
+            self.addEventListener('fetch', e => {
+                e.respondWith(fetch(e.request).catch(() => new Response('Offline Mode')));
+            });
+        `;
         if ('serviceWorker' in navigator) {
             window.addEventListener('load', () => {
-                navigator.serviceWorker.register(URL.createObjectURL(new Blob([swCode], {type: 'application/javascript'}))).catch(()=>{});
+                const swBlobUrl = URL.createObjectURL(new Blob([swCode], {type: 'application/javascript'}));
+                navigator.serviceWorker.register(swBlobUrl).catch(() => console.log('SW Setup skipped'));
             });
         }
 
         let deferredPrompt;
         window.addEventListener('beforeinstallprompt', (e) => {
-            // Mencegah Chrome memunculkan mini-infobar secara otomatis
             e.preventDefault();
-            // Simpan event agar bisa dipicu nanti
             deferredPrompt = e;
-            // Tampilkan tombol Instal
             document.getElementById('install-container').classList.remove('hidden');
         });
 
         function instalAplikasi() {
             if (deferredPrompt) {
-                // Munculkan prompt instalasi bawaan Android
                 deferredPrompt.prompt();
                 deferredPrompt.userChoice.then((choiceResult) => {
                     if (choiceResult.outcome === 'accepted') {
@@ -261,13 +263,21 @@
             }
         }
 
-        // --- SISTEM SUARA ALARM (BYPASS AUTO-PLAY POLICY) ---
+        // --- 2. SISTEM SUARA ALARM & NOTIFIKASI SISTEM (BYPASS AUTO-PLAY) ---
         let audioCtx;
         let alarmInterval;
         let isAlarmTriggeredToday = false;
         let isAudioUnlocked = false;
 
+        // Meminta Izin Notifikasi Sistem (Untuk memunculkan popup OS Android jika browser ditutup)
+        function mintaIzinNotifikasi() {
+            if ("Notification" in window && Notification.permission === "default") {
+                Notification.requestPermission();
+            }
+        }
+
         function unlockAudio() {
+            mintaIzinNotifikasi(); // Minta izin notif saat user pertama klik
             if (isAudioUnlocked) return;
             try {
                 window.AudioContext = window.AudioContext || window.webkitAudioContext;
@@ -283,9 +293,7 @@
                 isAudioUnlocked = true;
                 document.removeEventListener('touchstart', unlockAudio);
                 document.removeEventListener('click', unlockAudio);
-            } catch (e) {
-                console.error("Audio API error:", e);
-            }
+            } catch (e) { console.error("Audio API error:", e); }
         }
 
         document.addEventListener('touchstart', unlockAudio, { once: true });
@@ -309,7 +317,7 @@
             osc2.connect(gainNode);
             gainNode.connect(audioCtx.destination);
 
-            gainNode.gain.setValueAtTime(0.3, audioCtx.currentTime);
+            gainNode.gain.setValueAtTime(0.4, audioCtx.currentTime);
             gainNode.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 0.2);
 
             osc1.start(audioCtx.currentTime);
@@ -322,11 +330,25 @@
             document.getElementById('modal-alarm').classList.remove('hidden');
             document.getElementById('modal-alarm').classList.add('flex');
             
+            // Putar Suara
             playSirenBeep();
             if(alarmInterval) clearInterval(alarmInterval); 
             alarmInterval = setInterval(playSirenBeep, 600); 
             
-            if (navigator.vibrate) navigator.vibrate([300, 300, 300, 300]);
+            // Getar HP
+            if (navigator.vibrate) navigator.vibrate([400, 200, 400, 200, 400]);
+
+            // Tembakkan Notifikasi Sistem (Jika diizinkan)
+            if ("Notification" in window && Notification.permission === "granted") {
+                navigator.serviceWorker.ready.then(function(registration) {
+                    registration.showNotification('WAKTUNYA RONDA!', {
+                        body: 'Pukul 23:15, segera laksanakan keliling keamanan lingkungan.',
+                        icon: PWA_ICON_BASE64,
+                        vibrate: [400, 200, 400, 200, 400],
+                        requireInteraction: true
+                    });
+                });
+            }
         }
 
         function stopAlarm() {
@@ -336,7 +358,7 @@
             if (navigator.vibrate) navigator.vibrate(0);
         }
 
-        // --- SISTEM JAM (DETEKSI OTOMATIS) ---
+        // --- 3. SISTEM JAM (DETEKSI OTOMATIS) ---
         function updateTime() {
             const now = new Date();
             const h = now.getHours();
@@ -356,17 +378,18 @@
             if (h === 0 && m === 0) isAlarmTriggeredToday = false;
         }
 
-        // --- SISTEM UI & FUNGSI APLIKASI ---
+        // --- 4. SISTEM UI & FUNGSI APLIKASI ---
         function initApp() {
-            const saved = localStorage.getItem('portalDataV3');
+            const saved = localStorage.getItem('portalDataFinal'); // Key baru untuk hindari error lama
             if (saved) { try { stateData = JSON.parse(saved); } catch(e){} }
             renderUtama();
             setInterval(updateTime, 1000);
             updateTime();
             
-            // Sembunyikan tombol admin & instal jika sudah di PWA Standalone
+            // Cek jika aplikasi dibuka via HP / Standalone Mode PWA
             if (window.matchMedia('(display-mode: standalone)').matches || window.navigator.standalone === true) {
-                document.getElementById('btn-admin').style.display = 'none';
+                // Sembunyikan tombol admin secara utuh
+                document.getElementById('admin-container').style.display = 'none';
                 document.getElementById('install-container').style.display = 'none';
             }
         }
@@ -441,7 +464,7 @@
                 const img = new Image();
                 img.onload = function() {
                     const canvas = document.createElement('canvas');
-                    const MAX_SIZE = 128; // Hemat memori, kompres ke 128px
+                    const MAX_SIZE = 128;
                     let width = img.width; let height = img.height;
                     if (width > height && width > MAX_SIZE) { height *= MAX_SIZE / width; width = MAX_SIZE; } 
                     else if (height > MAX_SIZE) { width *= MAX_SIZE / height; height = MAX_SIZE; }
@@ -465,7 +488,7 @@
             }
         }
 
-        // --- SISTEM ADMIN LENGKAP ---
+        // --- 5. SISTEM ADMIN LENGKAP (PERBAIKAN SIMPAN) ---
         function bukaModalLogin() { 
             document.getElementById('input-pin').value = '';
             document.getElementById('pesan-error-pin').classList.add('hidden');
@@ -553,6 +576,7 @@
         function tambahAdminPengumuman() { adminPengumumanTemp.unshift({ judul: "Agenda Baru", tanggal: "", isi: "" }); renderFormPengumuman(); }
         function hapusAdminPengumuman(index) { adminPengumumanTemp.splice(index, 1); renderFormPengumuman(); }
 
+        // Murni menyimpan data tanpa loading ulang (No Reload) agar data tidak hilang
         function simpanAdmin() {
             stateData.profil.nama = document.getElementById('admin-nama').value;
             stateData.profil.tagline = document.getElementById('admin-tagline').value;
@@ -560,12 +584,14 @@
             stateData.tautan = adminTautanTemp;
             stateData.pengumuman = adminPengumumanTemp;
             
-            // Simpan pakai key baru agar reset jika sebelumnya ada error
-            localStorage.setItem('portalDataV3', JSON.stringify(stateData));
+            // Simpan ke Local Storage
+            localStorage.setItem('portalDataFinal', JSON.stringify(stateData));
             
-            customAlert("Berhasil", "Pengaturan sistem telah diperbarui.");
-            keluarAdmin();
+            customAlert("Berhasil Disimpan", "Pengaturan sistem Anda telah diperbarui dengan sukses.");
+            
+            // Perbarui tampilan depan secara Real-time dan keluar dari admin
             renderUtama(); 
+            keluarAdmin();
         }
 
         function keluarAdmin() { 
