@@ -1,0 +1,579 @@
+<!DOCTYPE html>
+<html lang="id" class="dark">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Portal Warga</title>
+    
+    <!-- PWA Meta Tags -->
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="mobile-web-app-capable" content="yes">
+    <meta name="theme-color" content="#0f172a">
+    
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
+    <style>
+        body { background: #0f172a; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; overscroll-behavior: none; }
+        .page-transition { transition: all 0.3s ease; }
+        .page-active { opacity: 1; visibility: visible; }
+        .page-hidden { opacity: 0; visibility: hidden; position: absolute; pointer-events: none; }
+        
+        /* Animasi Alarm */
+        @keyframes flashRed {
+            0% { background-color: rgba(220, 38, 38, 0.9); }
+            50% { background-color: rgba(153, 27, 27, 0.9); box-shadow: 0 0 30px rgba(220, 38, 38, 1); transform: scale(1.05); }
+            100% { background-color: rgba(220, 38, 38, 0.9); }
+        }
+        .alarm-active { animation: flashRed 1s infinite ease-in-out; }
+        
+        /* Menyembunyikan scrollbar bawaan agar rapi */
+        ::-webkit-scrollbar { width: 0px; }
+    </style>
+</head>
+<body class="text-white min-h-screen flex justify-center relative overflow-hidden">
+
+    <!-- ========================================== -->
+    <!-- TAMPILAN UTAMA (PORTAL)                    -->
+    <!-- ========================================== -->
+    <div id="view-public" class="w-full max-w-md p-5 page-active page-transition h-screen overflow-y-auto pb-24 relative z-10">
+        
+        <!-- Header & Tagline -->
+        <div class="flex items-start justify-between mb-6 mt-2">
+            <div class="flex-1 pr-2">
+                <h1 id="profil-nama" class="text-2xl font-black tracking-tight text-slate-100">Portal Warga</h1>
+                <p id="profil-tagline" class="text-[11px] text-blue-400 font-medium mt-1 leading-relaxed">...</p>
+            </div>
+            <div class="text-right bg-slate-800/80 px-3 py-2 rounded-xl border border-slate-700 shrink-0 shadow-lg">
+                <div id="clock" class="text-xl font-mono font-bold text-emerald-400">00:00</div>
+                <div id="date" class="text-[9px] text-slate-400 uppercase tracking-wide">...</div>
+            </div>
+        </div>
+
+        <!-- Menu Grid 2 Kolom (Ikon Gambar) -->
+        <div id="daftar-tautan" class="grid grid-cols-2 gap-3 mb-6">
+            <!-- Render via JS -->
+        </div>
+
+        <!-- Pengumuman & Agenda -->
+        <div class="mb-6">
+            <h3 class="text-xs font-bold mb-3 text-blue-400 flex items-center gap-2 uppercase tracking-wider">
+                <i class="fa-solid fa-bullhorn"></i> Informasi & Agenda
+            </h3>
+            <div id="daftar-pengumuman" class="space-y-3">
+                <!-- Render via JS -->
+            </div>
+        </div>
+
+        <!-- Lapor Ketua -->
+        <div class="bg-gradient-to-br from-slate-800 to-slate-900 p-5 rounded-2xl border border-slate-700 shadow-xl mb-6 relative overflow-hidden">
+            <div class="absolute -right-10 -top-10 text-slate-700/30 text-9xl pointer-events-none"><i class="fa-brands fa-whatsapp"></i></div>
+            <h3 class="text-xs font-bold mb-3 text-emerald-400 flex items-center gap-2 relative z-10">
+                LAPOR KETUA
+            </h3>
+            <textarea id="lapor-text" class="w-full p-3 mb-3 bg-slate-950/80 rounded-xl text-xs border border-slate-700 focus:border-emerald-500 focus:ring-1 focus:ring-emerald-500 outline-none transition-all relative z-10 placeholder-slate-500" rows="2" placeholder="Tulis laporan keamanan, izin absen, dll..."></textarea>
+            <button onclick="kirimLaporan()" class="w-full py-3 bg-emerald-600 rounded-xl text-xs font-bold hover:bg-emerald-500 transition shadow-lg shadow-emerald-900/30 active:scale-95 relative z-10">KIRIM VIA WHATSAPP</button>
+        </div>
+
+        <!-- Tombol PWA Instal Aplikasi Cerdas (Hanya Muncul jika didukung) -->
+        <div id="install-container" class="hidden mb-6">
+            <button onclick="instalAplikasi()" class="w-full py-3.5 bg-gradient-to-r from-blue-600 to-blue-500 rounded-xl text-xs font-bold shadow-lg shadow-blue-500/30 active:scale-95 transition flex items-center justify-center gap-2 border border-blue-400">
+                <i class="fa-solid fa-download"></i> INSTAL APLIKASI
+            </button>
+        </div>
+
+        <!-- Tombol Admin & Tes Alarm -->
+        <div class="flex justify-between items-center mt-2 pt-4 border-t border-slate-800">
+            <button onclick="triggerAlarm()" class="text-slate-600 hover:text-red-400 text-[10px] uppercase font-bold tracking-widest transition">
+                <i class="fa-solid fa-bell mr-1"></i> Uji Alarm
+            </button>
+            <button id="btn-admin" onclick="bukaModalLogin()" class="text-slate-600 hover:text-slate-400 text-[10px] uppercase font-bold tracking-widest transition">
+                <i class="fa-solid fa-gear mr-1"></i> Admin
+            </button>
+        </div>
+    </div>
+
+    <!-- ========================================== -->
+    <!-- MODAL ALARM RONDA (PENGINGAT OTOMATIS)     -->
+    <!-- ========================================== -->
+    <div id="modal-alarm" class="fixed inset-0 z-[100] hidden items-center justify-center p-4 bg-slate-950/95 backdrop-blur-md">
+        <div class="alarm-active p-8 rounded-3xl w-full max-w-sm text-center border-[4px] border-white/20 shadow-[0_0_50px_rgba(220,38,38,0.5)]">
+            <i class="fa-solid fa-triangle-exclamation text-6xl text-white mb-4 drop-shadow-md"></i>
+            <h1 class="text-3xl font-black text-white uppercase tracking-widest mb-1">PENGINGAT</h1>
+            <h2 class="text-2xl font-bold text-white/90 mb-4 bg-black/30 inline-block px-4 py-1 rounded-full font-mono">Pukul 23:15</h2>
+            
+            <p class="text-white font-bold text-lg mb-2">WAKTUNYA RONDA!</p>
+            <p class="text-white/80 font-medium mb-8 text-sm">Segera laksanakan keliling keamanan lingkungan dan lakukan absensi laporan.</p>
+            
+            <button onclick="stopAlarm()" class="w-full py-4 bg-white text-red-700 rounded-xl text-base font-black uppercase hover:bg-slate-200 shadow-[0_10px_20px_rgba(0,0,0,0.3)] active:scale-95 transition-transform border-2 border-red-200">
+                MATIKAN ALARM
+            </button>
+        </div>
+    </div>
+
+    <!-- ========================================== -->
+    <!-- DASHBOARD ADMIN                            -->
+    <!-- ========================================== -->
+    <div id="view-admin" class="w-full max-w-md bg-slate-900 z-50 page-hidden page-transition h-screen flex flex-col absolute top-0 left-0">
+        <div class="bg-slate-800 border-b border-slate-700 p-4 flex justify-between items-center shrink-0 shadow-md">
+            <h2 class="font-bold text-white text-sm"><i class="fa-solid fa-shield-halved mr-2 text-blue-500"></i>Konfigurasi Gateway</h2>
+            <button onclick="keluarAdmin()" class="text-slate-400 hover:text-red-400 text-xl"><i class="fa-solid fa-times"></i></button>
+        </div>
+
+        <div class="p-4 space-y-6 flex-1 overflow-y-auto pb-24">
+            <!-- Pengaturan Umum -->
+            <div class="bg-slate-800 p-4 rounded-xl border border-slate-700 shadow-md">
+                <label class="text-[10px] text-slate-400 mb-1 block font-bold uppercase">Nama Portal</label>
+                <input type="text" id="admin-nama" class="w-full p-2.5 mb-3 bg-slate-900 rounded-lg text-sm border border-slate-700 focus:border-blue-500 outline-none text-white">
+                
+                <label class="text-[10px] text-slate-400 mb-1 block font-bold uppercase">Tagline / Deskripsi</label>
+                <textarea id="admin-tagline" class="w-full p-2.5 mb-3 bg-slate-900 rounded-lg text-sm border border-slate-700 focus:border-blue-500 outline-none text-white" rows="2"></textarea>
+                
+                <label class="text-[10px] text-slate-400 mb-1 block font-bold uppercase">Nomor WA Ketua (Awalan 62)</label>
+                <input type="number" id="admin-wa" placeholder="62812..." class="w-full p-2.5 bg-slate-900 rounded-lg text-sm border border-slate-700 focus:border-blue-500 outline-none text-white">
+            </div>
+
+            <!-- Pengaturan Menu -->
+            <div class="bg-slate-800 p-4 rounded-xl border border-slate-700 shadow-md">
+                <div class="flex justify-between items-center mb-3">
+                    <h3 class="text-xs font-bold text-blue-400 uppercase tracking-wider">Daftar Menu</h3>
+                    <button onclick="tambahAdminTautan()" class="text-[10px] bg-blue-600 hover:bg-blue-500 text-white px-2 py-1 rounded shadow">+ Tambah</button>
+                </div>
+                <div id="admin-tautan-container" class="space-y-4">
+                    <!-- Form tautan di-generate oleh JS -->
+                </div>
+            </div>
+
+            <!-- Pengaturan Pengumuman -->
+            <div class="bg-slate-800 p-4 rounded-xl border border-slate-700 shadow-md">
+                <div class="flex justify-between items-center mb-3">
+                    <h3 class="text-xs font-bold text-purple-400 uppercase tracking-wider">Pengumuman & Agenda</h3>
+                    <button onclick="tambahAdminPengumuman()" class="text-[10px] bg-purple-600 hover:bg-purple-500 text-white px-2 py-1 rounded shadow">+ Tambah</button>
+                </div>
+                <div id="admin-pengumuman-container" class="space-y-4">
+                    <!-- Form pengumuman di-generate oleh JS -->
+                </div>
+            </div>
+        </div>
+
+        <div class="bg-slate-800 border-t border-slate-700 p-4 shrink-0 shadow-lg absolute bottom-0 w-full z-10">
+            <button onclick="simpanAdmin()" class="w-full py-3 bg-blue-600 rounded-xl font-bold text-sm hover:bg-blue-500 active:scale-95 transition shadow-lg shadow-blue-900/50">SIMPAN PERUBAHAN</button>
+        </div>
+    </div>
+
+    <!-- ========================================== -->
+    <!-- MODAL POP-UPS                              -->
+    <!-- ========================================== -->
+    <!-- Modal Login -->
+    <div id="modal-login" class="fixed inset-0 bg-slate-900/95 z-[60] hidden items-center justify-center p-4 backdrop-blur-sm">
+        <div class="bg-slate-800 border border-slate-700 p-6 rounded-2xl w-full max-w-xs shadow-2xl">
+            <div class="text-center mb-5">
+                <i class="fa-solid fa-lock text-3xl text-blue-500 mb-2"></i>
+                <h3 class="font-bold text-white">Akses Admin</h3>
+            </div>
+            <input type="password" id="input-pin" placeholder="Masukkan PIN..." class="w-full p-3 mb-2 bg-slate-900 rounded-xl text-center text-lg tracking-[0.5em] border border-slate-700 focus:border-blue-500 outline-none text-white">
+            <p id="pesan-error-pin" class="text-red-400 text-[10px] text-center mb-4 hidden">PIN Tidak Sesuai!</p>
+            <div class="flex gap-2">
+                <button onclick="tutupModalLogin()" class="flex-1 py-3 bg-slate-700 rounded-xl text-xs font-bold">BATAL</button>
+                <button onclick="verifikasiPin()" class="flex-1 py-3 bg-blue-600 rounded-xl text-xs font-bold hover:bg-blue-500">MASUK</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal Peringatan -->
+    <div id="modal-alert" class="fixed inset-0 bg-slate-900/90 z-[70] hidden items-center justify-center p-4 backdrop-blur-sm">
+        <div class="bg-slate-800 border border-slate-700 p-5 rounded-2xl w-full max-w-xs shadow-2xl text-center">
+            <i id="alert-icon" class="fa-solid fa-circle-info text-4xl text-blue-500 mb-3"></i>
+            <h3 id="alert-title" class="font-bold text-white mb-2">Info</h3>
+            <p id="alert-message" class="text-sm text-slate-300 mb-5">Pesan</p>
+            <button onclick="tutupModalAlert()" class="w-full py-2.5 bg-blue-600 rounded-xl text-xs font-bold hover:bg-blue-500">MENGERTI</button>
+        </div>
+    </div>
+
+
+    <!-- ========================================== -->
+    <!-- LOGIKA SISTEM UTAMA (JAVASCRIPT)           -->
+    <!-- ========================================== -->
+    <script>
+        const DEFAULT_ICON = "data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAyNCAyNCIgZmlsbD0ibm9uZSIgc3Ryb2tlPSIjOTRhM2I4IiBzdHJva2Utd2lkdGg9IjIiIHN0cm9rZS1saW5lY2FwPSJyb3VuZCIgc3Ryb2tlLWxpbmVqb2luPSJyb3VuZCI+PHBhdGggZD0iTTIyIDE5YTIgMiAwIDAgMS0yIDJIMGExLjkgMS45IDAgMCAxLTItMloiLz48Y2lyY2xlIGN4PSIxMiIgY3k9IjEyIiByPSIzIi8+PC9zdmc+";
+
+        let stateData = {
+            pin: "123456",
+            waKetua: "628123456789",
+            profil: { 
+                nama: "Portal Warga",
+                tagline: "Bersama mewujudkan lingkungan yang aman dan nyaman."
+            },
+            tautan: [
+                { judul: "Jadwal Ronda", url: "#", ikonUrl: DEFAULT_ICON },
+                { judul: "Kas RT", url: "#", ikonUrl: DEFAULT_ICON }
+            ],
+            pengumuman: [
+                { judul: "Kerja Bakti Warga", tanggal: "2026-07-05", isi: "Diharapkan kehadirannya untuk kegiatan bersih-bersih lingkungan hari Minggu besok." }
+            ]
+        };
+
+        let adminTautanTemp = [];
+        let adminPengumumanTemp = [];
+
+        // --- SISTEM PWA & TOMBOL INSTAL CERDAS ---
+        const PWA_ICON_BASE64 = "data:image/svg+xml;base64,PHN2ZyB4bWxucz0naHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmcnIHZpZXdCb3g9JzAgMCAyNCAyNCcgZmlsbD0nIzNiODJmNic+PHBhdGggZD0nTTQgMmgxNmEyIDIgMCAwIDEgMiAydjE2YTIgMiAwIDAgMS0yIDJINGEyIDIgMCAwIDEtMi0yVjRhMiAyIDAgMCAxIDItMnoiLz48L3N2Zz4=";
+        const manifestData = {
+            "name": "Portal Warga",
+            "short_name": "Portal Warga",
+            "start_url": window.location.href,
+            "display": "standalone",
+            "background_color": "#0f172a",
+            "theme_color": "#0f172a",
+            "icons": [{"src": PWA_ICON_BASE64, "sizes": "192x192 512x512", "type": "image/svg+xml", "purpose": "any maskable"}]
+        };
+        const manifestBlob = new Blob([JSON.stringify(manifestData)], {type: 'application/manifest+json'});
+        document.head.insertAdjacentHTML('beforeend', `<link rel="manifest" href="${URL.createObjectURL(manifestBlob)}">`);
+
+        const swCode = `self.addEventListener('install', e => self.skipWaiting()); self.addEventListener('activate', e => self.clients.claim()); self.addEventListener('fetch', e => {});`;
+        if ('serviceWorker' in navigator) {
+            window.addEventListener('load', () => {
+                navigator.serviceWorker.register(URL.createObjectURL(new Blob([swCode], {type: 'application/javascript'}))).catch(()=>{});
+            });
+        }
+
+        let deferredPrompt;
+        window.addEventListener('beforeinstallprompt', (e) => {
+            // Mencegah Chrome memunculkan mini-infobar secara otomatis
+            e.preventDefault();
+            // Simpan event agar bisa dipicu nanti
+            deferredPrompt = e;
+            // Tampilkan tombol Instal
+            document.getElementById('install-container').classList.remove('hidden');
+        });
+
+        function instalAplikasi() {
+            if (deferredPrompt) {
+                // Munculkan prompt instalasi bawaan Android
+                deferredPrompt.prompt();
+                deferredPrompt.userChoice.then((choiceResult) => {
+                    if (choiceResult.outcome === 'accepted') {
+                        document.getElementById('install-container').classList.add('hidden');
+                    }
+                    deferredPrompt = null;
+                });
+            }
+        }
+
+        // --- SISTEM SUARA ALARM (BYPASS AUTO-PLAY POLICY) ---
+        let audioCtx;
+        let alarmInterval;
+        let isAlarmTriggeredToday = false;
+        let isAudioUnlocked = false;
+
+        function unlockAudio() {
+            if (isAudioUnlocked) return;
+            try {
+                window.AudioContext = window.AudioContext || window.webkitAudioContext;
+                if (!audioCtx) audioCtx = new window.AudioContext();
+                if (audioCtx.state === 'suspended') audioCtx.resume();
+
+                const buffer = audioCtx.createBuffer(1, 1, 22050);
+                const source = audioCtx.createBufferSource();
+                source.buffer = buffer;
+                source.connect(audioCtx.destination);
+                source.start(0);
+
+                isAudioUnlocked = true;
+                document.removeEventListener('touchstart', unlockAudio);
+                document.removeEventListener('click', unlockAudio);
+            } catch (e) {
+                console.error("Audio API error:", e);
+            }
+        }
+
+        document.addEventListener('touchstart', unlockAudio, { once: true });
+        document.addEventListener('click', unlockAudio, { once: true });
+        document.addEventListener('scroll', unlockAudio, { once: true, capture: true });
+
+        function playSirenBeep() {
+            if (!isAudioUnlocked) unlockAudio(); 
+            if (!audioCtx) return;
+
+            const osc1 = audioCtx.createOscillator();
+            const osc2 = audioCtx.createOscillator();
+            const gainNode = audioCtx.createGain();
+
+            osc1.type = 'square'; 
+            osc2.type = 'sawtooth';
+            osc1.frequency.setValueAtTime(800, audioCtx.currentTime); 
+            osc2.frequency.setValueAtTime(820, audioCtx.currentTime); 
+
+            osc1.connect(gainNode);
+            osc2.connect(gainNode);
+            gainNode.connect(audioCtx.destination);
+
+            gainNode.gain.setValueAtTime(0.3, audioCtx.currentTime);
+            gainNode.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 0.2);
+
+            osc1.start(audioCtx.currentTime);
+            osc2.start(audioCtx.currentTime);
+            osc1.stop(audioCtx.currentTime + 0.2);
+            osc2.stop(audioCtx.currentTime + 0.2);
+        }
+
+        function triggerAlarm() {
+            document.getElementById('modal-alarm').classList.remove('hidden');
+            document.getElementById('modal-alarm').classList.add('flex');
+            
+            playSirenBeep();
+            if(alarmInterval) clearInterval(alarmInterval); 
+            alarmInterval = setInterval(playSirenBeep, 600); 
+            
+            if (navigator.vibrate) navigator.vibrate([300, 300, 300, 300]);
+        }
+
+        function stopAlarm() {
+            clearInterval(alarmInterval);
+            document.getElementById('modal-alarm').classList.add('hidden');
+            document.getElementById('modal-alarm').classList.remove('flex');
+            if (navigator.vibrate) navigator.vibrate(0);
+        }
+
+        // --- SISTEM JAM (DETEKSI OTOMATIS) ---
+        function updateTime() {
+            const now = new Date();
+            const h = now.getHours();
+            const m = now.getMinutes();
+            const s = now.getSeconds();
+
+            document.getElementById('clock').textContent = `${h.toString().padStart(2, '0')}:${m.toString().padStart(2, '0')}:${s.toString().padStart(2, '0')}`;
+            document.getElementById('date').textContent = now.toLocaleDateString('id-ID', {day: '2-digit', month: 'short', year:'numeric'});
+            
+            // LOGIKA UTAMA: Jam 23:15
+            if (h === 23 && m === 15 && s === 0) {
+                if (!isAlarmTriggeredToday) {
+                    triggerAlarm();
+                    isAlarmTriggeredToday = true;
+                }
+            }
+            if (h === 0 && m === 0) isAlarmTriggeredToday = false;
+        }
+
+        // --- SISTEM UI & FUNGSI APLIKASI ---
+        function initApp() {
+            const saved = localStorage.getItem('portalDataV3');
+            if (saved) { try { stateData = JSON.parse(saved); } catch(e){} }
+            renderUtama();
+            setInterval(updateTime, 1000);
+            updateTime();
+            
+            // Sembunyikan tombol admin & instal jika sudah di PWA Standalone
+            if (window.matchMedia('(display-mode: standalone)').matches || window.navigator.standalone === true) {
+                document.getElementById('btn-admin').style.display = 'none';
+                document.getElementById('install-container').style.display = 'none';
+            }
+        }
+
+        function renderUtama() {
+            document.getElementById('profil-nama').textContent = stateData.profil.nama;
+            document.getElementById('profil-tagline').textContent = stateData.profil.tagline || "";
+            document.title = stateData.profil.nama;
+            
+            // Render Tautan / Menu Grid
+            document.getElementById('daftar-tautan').innerHTML = stateData.tautan.map(t => `
+                <a href="${t.url}" class="p-4 bg-slate-800/80 rounded-2xl flex flex-col items-center gap-3 border border-slate-700/50 hover:border-blue-500/50 active:scale-95 transition-all group shadow">
+                    <img src="${t.ikonUrl || DEFAULT_ICON}" class="w-12 h-12 object-contain filter drop-shadow-lg rounded">
+                    <span class="text-[11px] font-bold text-slate-200 text-center tracking-wide leading-tight">${t.judul}</span>
+                </a>
+            `).join('');
+
+            // Render Pengumuman & Agenda
+            const daftarP = document.getElementById('daftar-pengumuman');
+            if (!stateData.pengumuman || stateData.pengumuman.length === 0) {
+                daftarP.innerHTML = `<div class="text-[10px] text-slate-500 italic text-center p-3 bg-slate-800/50 rounded-xl">Belum ada informasi.</div>`;
+            } else {
+                daftarP.innerHTML = stateData.pengumuman.map((p, i) => {
+                    const tanggalFormat = p.tanggal ? new Date(p.tanggal).toLocaleDateString('id-ID', {day: 'numeric', month: 'long', year: 'numeric'}) : '';
+                    return `
+                    <div class="bg-slate-800 p-4 rounded-xl border border-slate-700 relative shadow-md">
+                        <h4 class="text-sm font-bold text-white mb-1 pr-8">${p.judul}</h4>
+                        <div class="text-[9px] text-blue-400 font-medium mb-2"><i class="fa-regular fa-calendar mr-1"></i> ${tanggalFormat}</div>
+                        <p class="text-xs text-slate-300 leading-relaxed">${p.isi}</p>
+                        
+                        <button onclick="sharePengumumanWA(${i})" class="absolute top-4 right-4 text-slate-400 hover:text-emerald-400 transition" title="Bagikan ke WhatsApp">
+                            <i class="fa-solid fa-share-nodes text-lg"></i>
+                        </button>
+                    </div>
+                `}).join('');
+            }
+        }
+
+        // Fitur Share WhatsApp
+        function sharePengumumanWA(index) {
+            const p = stateData.pengumuman[index];
+            const tanggalFormat = p.tanggal ? new Date(p.tanggal).toLocaleDateString('id-ID', {day: 'numeric', month: 'long', year: 'numeric'}) : '';
+            const textWA = `*INFORMASI WARGA*\n\n📌 *${p.judul}*\n📅 ${tanggalFormat}\n\n${p.isi}\n\n_Info dari: ${stateData.profil.nama}_`;
+            window.open(`https://wa.me/?text=${encodeURIComponent(textWA)}`, '_blank');
+        }
+
+        function kirimLaporan() {
+            const msg = document.getElementById('lapor-text').value;
+            if(!msg.trim()) return customAlert("Perhatian", "Silakan ketik laporan Anda terlebih dahulu.", true);
+            let waFix = stateData.waKetua.replace(/\D/g, '');
+            if(waFix.startsWith('0')) waFix = '62' + waFix.substring(1);
+            window.open(`https://wa.me/${waFix}?text=${encodeURIComponent(msg)}`, '_blank');
+            document.getElementById('lapor-text').value = '';
+        }
+
+        function customAlert(title, message, isError = false) {
+            document.getElementById('alert-title').textContent = title;
+            document.getElementById('alert-message').textContent = message;
+            document.getElementById('alert-icon').className = isError ? "fa-solid fa-triangle-exclamation text-4xl text-red-500 mb-3" : "fa-solid fa-circle-check text-4xl text-emerald-500 mb-3";
+            document.getElementById('modal-alert').classList.remove('hidden');
+            document.getElementById('modal-alert').classList.add('flex');
+        }
+        function tutupModalAlert() {
+            document.getElementById('modal-alert').classList.add('hidden');
+            document.getElementById('modal-alert').classList.remove('flex');
+        }
+
+        // --- SISTEM KOMPRESI GAMBAR (IKON) ---
+        function compressImage(file, callback) {
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                const img = new Image();
+                img.onload = function() {
+                    const canvas = document.createElement('canvas');
+                    const MAX_SIZE = 128; // Hemat memori, kompres ke 128px
+                    let width = img.width; let height = img.height;
+                    if (width > height && width > MAX_SIZE) { height *= MAX_SIZE / width; width = MAX_SIZE; } 
+                    else if (height > MAX_SIZE) { width *= MAX_SIZE / height; height = MAX_SIZE; }
+                    canvas.width = width; canvas.height = height;
+                    const ctx = canvas.getContext('2d');
+                    ctx.drawImage(img, 0, 0, width, height);
+                    callback(canvas.toDataURL('image/webp', 0.8));
+                }
+                img.src = e.target.result;
+            }
+            reader.readAsDataURL(file);
+        }
+        function handleFileUpload(input, index) {
+            const file = input.files[0];
+            if (file) {
+                document.getElementById(`preview-icon-${index}`).src = DEFAULT_ICON;
+                compressImage(file, function(compressedDataUrl) {
+                    adminTautanTemp[index].ikonUrl = compressedDataUrl;
+                    document.getElementById(`preview-icon-${index}`).src = compressedDataUrl;
+                });
+            }
+        }
+
+        // --- SISTEM ADMIN LENGKAP ---
+        function bukaModalLogin() { 
+            document.getElementById('input-pin').value = '';
+            document.getElementById('pesan-error-pin').classList.add('hidden');
+            document.getElementById('modal-login').classList.remove('hidden'); 
+            document.getElementById('modal-login').classList.add('flex'); 
+        }
+        function tutupModalLogin() {
+            document.getElementById('modal-login').classList.add('hidden');
+            document.getElementById('modal-login').classList.remove('flex');
+        }
+        function verifikasiPin() { 
+            if(document.getElementById('input-pin').value === stateData.pin) {
+                tutupModalLogin();
+                bukaDashboardAdmin();
+            } else {
+                document.getElementById('pesan-error-pin').classList.remove('hidden');
+            }
+        }
+        
+        function bukaDashboardAdmin() {
+            document.getElementById('view-public').classList.replace('page-active', 'page-hidden');
+            document.getElementById('view-admin').classList.replace('page-hidden', 'page-active');
+            
+            document.getElementById('admin-nama').value = stateData.profil.nama;
+            document.getElementById('admin-tagline').value = stateData.profil.tagline || "";
+            document.getElementById('admin-wa').value = stateData.waKetua;
+            
+            adminTautanTemp = JSON.parse(JSON.stringify(stateData.tautan));
+            adminPengumumanTemp = JSON.parse(JSON.stringify(stateData.pengumuman || []));
+            
+            renderFormTautan();
+            renderFormPengumuman();
+        }
+
+        // Render Form Tautan
+        function renderFormTautan() {
+            const c = document.getElementById('admin-tautan-container');
+            c.innerHTML = adminTautanTemp.map((t, i) => `
+                <div class="bg-slate-900 border border-slate-700 p-3 rounded-xl relative">
+                    <button onclick="hapusAdminTautan(${i})" class="absolute top-2 right-2 text-red-500 hover:text-red-400"><i class="fa-solid fa-trash text-sm"></i></button>
+                    <div class="pr-6 space-y-3">
+                        <input value="${t.judul}" onchange="adminTautanTemp[${i}].judul=this.value" class="w-full p-2 bg-slate-800 rounded text-xs border border-slate-700 text-white" placeholder="Judul Menu">
+                        <input value="${t.url}" onchange="adminTautanTemp[${i}].url=this.value" class="w-full p-2 bg-slate-800 rounded text-xs border border-slate-700 text-white" placeholder="URL Tujuan (https://)">
+                        
+                        <div class="border border-slate-700 p-2 rounded-lg bg-slate-800 flex items-center gap-3">
+                            <img id="preview-icon-${i}" src="${t.ikonUrl || DEFAULT_ICON}" class="w-10 h-10 object-contain bg-slate-900 rounded border border-slate-700">
+                            <div class="flex-1">
+                                <label class="text-[9px] text-slate-400 uppercase block mb-1">Ganti Ikon Gambar</label>
+                                <label class="cursor-pointer bg-blue-600 hover:bg-blue-500 text-white text-[10px] px-3 py-1.5 rounded block text-center font-bold">
+                                    Pilih Gambar
+                                    <input type="file" accept="image/*" class="hidden" onchange="handleFileUpload(this, ${i})">
+                                </label>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            `).join('');
+        }
+        function tambahAdminTautan() { adminTautanTemp.push({ judul: "Menu Baru", url: "https://", ikonUrl: "" }); renderFormTautan(); }
+        function hapusAdminTautan(index) { adminTautanTemp.splice(index, 1); renderFormTautan(); }
+
+        // Render Form Pengumuman
+        function renderFormPengumuman() {
+            const container = document.getElementById('admin-pengumuman-container');
+            container.innerHTML = adminPengumumanTemp.map((p, i) => `
+                <div class="bg-slate-900 border border-slate-700 p-3 rounded-xl relative">
+                    <button onclick="hapusAdminPengumuman(${i})" class="absolute top-2 right-2 text-red-500 hover:text-red-400"><i class="fa-solid fa-trash text-sm"></i></button>
+                    <div class="pr-6 space-y-2">
+                        <div>
+                            <label class="text-[9px] text-slate-500 uppercase">Judul Agenda</label>
+                            <input value="${p.judul}" onchange="adminPengumumanTemp[${i}].judul=this.value" class="w-full p-2 bg-slate-800 rounded text-xs border border-slate-700 text-white">
+                        </div>
+                        <div>
+                            <label class="text-[9px] text-slate-500 uppercase">Tanggal Acara / Berlaku</label>
+                            <input type="date" value="${p.tanggal}" onchange="adminPengumumanTemp[${i}].tanggal=this.value" class="w-full p-2 bg-slate-800 rounded text-xs border border-slate-700 text-white" style="color-scheme: dark;">
+                        </div>
+                        <div>
+                            <label class="text-[9px] text-slate-500 uppercase">Isi Pesan</label>
+                            <textarea onchange="adminPengumumanTemp[${i}].isi=this.value" class="w-full p-2 bg-slate-800 rounded text-xs border border-slate-700 text-white" rows="2">${p.isi}</textarea>
+                        </div>
+                    </div>
+                </div>
+            `).join('');
+        }
+        function tambahAdminPengumuman() { adminPengumumanTemp.unshift({ judul: "Agenda Baru", tanggal: "", isi: "" }); renderFormPengumuman(); }
+        function hapusAdminPengumuman(index) { adminPengumumanTemp.splice(index, 1); renderFormPengumuman(); }
+
+        function simpanAdmin() {
+            stateData.profil.nama = document.getElementById('admin-nama').value;
+            stateData.profil.tagline = document.getElementById('admin-tagline').value;
+            stateData.waKetua = document.getElementById('admin-wa').value;
+            stateData.tautan = adminTautanTemp;
+            stateData.pengumuman = adminPengumumanTemp;
+            
+            // Simpan pakai key baru agar reset jika sebelumnya ada error
+            localStorage.setItem('portalDataV3', JSON.stringify(stateData));
+            
+            customAlert("Berhasil", "Pengaturan sistem telah diperbarui.");
+            keluarAdmin();
+            renderUtama(); 
+        }
+
+        function keluarAdmin() { 
+            document.getElementById('view-admin').classList.replace('page-active', 'page-hidden');
+            document.getElementById('view-public').classList.replace('page-hidden', 'page-active');
+        }
+
+        initApp();
+    </script>
+</body>
+</html>
