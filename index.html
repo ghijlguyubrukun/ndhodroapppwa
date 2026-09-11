@@ -48,10 +48,10 @@
     <div id="view-public" class="w-full max-w-md p-5 page-active page-transition h-screen overflow-y-auto pb-24 relative z-10">
         
         <!-- Header & Tagline -->
-        <div class="flex items-start justify-between mb-6 mt-2">
-            <div class="flex-1 pr-2">
-                <h1 id="profil-nama" class="text-2xl font-black tracking-tight text-slate-100">Portal Warga</h1>
-                <p id="profil-tagline" class="text-[11px] text-blue-400 font-medium mt-1 leading-relaxed">...</p>
+        <div class="flex items-start justify-between gap-3 mb-6 mt-2">
+            <div class="flex-1 min-w-0 pr-1">
+                <h1 id="profil-nama" class="text-xl sm:text-[22px] font-black tracking-tight text-slate-100 leading-[1.15] break-words">Portal Warga Blok GHIJL</h1>
+                <p id="profil-tagline" class="text-[10px] text-blue-400 font-medium mt-1.5 leading-snug break-words">...</p>
             </div>
             <div class="text-right bg-slate-800/80 px-3 py-2 rounded-xl border border-slate-700 shrink-0 shadow-lg">
                 <div id="clock" class="text-xl font-mono font-bold text-emerald-400">00:00</div>
@@ -84,12 +84,21 @@
             <button onclick="kirimLaporan()" class="w-full py-3 bg-emerald-600 rounded-xl text-xs font-bold hover:bg-emerald-500 transition shadow-lg shadow-emerald-900/30 active:scale-95 relative z-10">KIRIM VIA WHATSAPP</button>
         </div>
 
-        <!-- Tombol PWA Instal Aplikasi -->
-        <div id="install-container" class="mb-6">
-            <button onclick="instalAplikasi()" class="w-full py-3 bg-gradient-to-r from-blue-600 to-indigo-600 rounded-xl font-bold active:scale-95 transition-all flex flex-col items-center justify-center gap-1 border border-blue-400/50 animate-glow">
-                <div class="flex items-center gap-2 text-white text-xs"><i class="fa-solid fa-download"></i> INSTAL APLIKASI</div>
-                <div class="text-[9px] text-blue-200 font-medium">Akses lebih cepat & offline mode</div>
-            </button>
+        <!-- PWA Install Banner (Notifikasi Bawah) -->
+        <div id="pwa-banner" class="fixed bottom-0 left-0 w-full bg-slate-900 border-t border-slate-700 p-4 z-50 transform translate-y-full transition-transform duration-500 shadow-[0_-10px_20px_rgba(0,0,0,0.5)] flex items-center justify-between gap-3">
+            <div class="flex items-center gap-3 flex-1 min-w-0">
+                <div class="w-10 h-10 bg-gradient-to-br from-blue-600 to-indigo-600 rounded-xl flex items-center justify-center shrink-0 text-white text-lg shadow-lg shadow-blue-500/30">
+                    <i class="fa-solid fa-download"></i>
+                </div>
+                <div class="flex-1 min-w-0">
+                    <h4 class="text-xs font-bold text-white truncate">Instal Aplikasi Ini</h4>
+                    <p class="text-[9px] text-slate-400 leading-snug">Akses lebih cepat & offline mode</p>
+                </div>
+            </div>
+            <div class="flex flex-col gap-1.5 shrink-0">
+                <button onclick="terimaInstall()" class="bg-blue-600 hover:bg-blue-500 text-white text-[10px] font-bold px-4 py-1.5 rounded-lg active:scale-95 transition">Instal</button>
+                <button onclick="tolakInstall()" class="bg-slate-700 hover:bg-slate-600 text-slate-300 text-[10px] font-bold px-4 py-1.5 rounded-lg active:scale-95 transition">Nanti</button>
+            </div>
         </div>
 
         <!-- Tombol Admin -->
@@ -227,7 +236,7 @@
         const PWA_ICON_BASE64 = "data:image/svg+xml;base64,PHN2ZyB4bWxucz0naHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmcnIHZpZXdCb3g9JzAgMCAyNCAyNCcgZmlsbD0nIzNiODJmNic+PHBhdGggZD0nTTQgMmgxNmEyIDIgMCAwIDEgMiAydjE2YTIgMiAwIDAgMS0yIDJINGEyIDIgMCAwIDEtMi0yVjRhMiAyIDAgMCAxIDItMnoiLz48L3N2Zz4=";
         const manifestData = {
             "name": "Portal Warga Blok GHIJL",
-            "short_name": "Portal Warga Blok GHIJL",
+            "short_name": "Portal GHIJL",
             "start_url": window.location.href,
             "display": "standalone",
             "background_color": "#0f172a",
@@ -246,24 +255,33 @@
 
         let deferredPrompt;
         window.addEventListener('beforeinstallprompt', (e) => {
-            // Mencegah Chrome memunculkan mini-infobar secara otomatis
             e.preventDefault();
-            // Simpan event agar bisa dipicu nanti
             deferredPrompt = e;
+            tampilkanBannerPWA();
         });
 
-        function instalAplikasi() {
+        function tampilkanBannerPWA() {
+            if (sessionStorage.getItem('pwaBannerDismissed')) return;
+            const banner = document.getElementById('pwa-banner');
+            if (banner) {
+                setTimeout(() => banner.classList.remove('translate-y-full'), 1500);
+            }
+        }
+
+        function tolakInstall() {
+            document.getElementById('pwa-banner').classList.add('translate-y-full');
+            sessionStorage.setItem('pwaBannerDismissed', 'true');
+        }
+
+        function terimaInstall() {
+            document.getElementById('pwa-banner').classList.add('translate-y-full');
             if (deferredPrompt) {
-                // Munculkan prompt instalasi bawaan Android
                 deferredPrompt.prompt();
                 deferredPrompt.userChoice.then((choiceResult) => {
-                    if (choiceResult.outcome === 'accepted') {
-                        document.getElementById('install-container').style.display = 'none';
-                    }
                     deferredPrompt = null;
                 });
             } else {
-                customAlert("Instal Aplikasi", "Buka menu browser Anda (titik tiga) lalu pilih 'Tambahkan ke Layar Utama' (Add to Home screen) atau 'Instal Aplikasi'. Di iPhone (Safari), ketuk tombol Bagikan (Share) lalu pilih 'Tambah ke Layar Utama'.");
+                customAlert("Instal Aplikasi", "Buka menu browser Anda (titik tiga) lalu pilih 'Tambahkan ke Layar Utama' (Add to Home screen). Di iPhone (Safari), ketuk tombol Bagikan (Share) lalu pilih 'Tambah ke Layar Utama'.");
             }
         }
 
@@ -364,16 +382,18 @@
 
         // --- SISTEM UI & FUNGSI APLIKASI ---
         function initApp() {
-            const saved = localStorage.getItem('portalDataV4');
+            const saved = localStorage.getItem('portalDataV5');
             if (saved) { try { stateData = JSON.parse(saved); } catch(e){} }
             renderUtama();
             setInterval(updateTime, 1000);
             updateTime();
             
-            // Sembunyikan tombol admin & instal jika sudah di PWA Standalone
+            // Sembunyikan tombol admin jika sudah di PWA Standalone
             if (window.matchMedia('(display-mode: standalone)').matches || window.navigator.standalone === true) {
                 document.getElementById('btn-admin').style.display = 'none';
-                document.getElementById('install-container').style.display = 'none';
+            } else {
+                // Munculkan notifikasi banner instalasi jika belum diinstal
+                tampilkanBannerPWA();
             }
         }
 
@@ -564,7 +584,7 @@
             stateData.pengumuman = adminPengumumanTemp;
             
             // Simpan pakai key baru agar reset jika sebelumnya ada error
-            localStorage.setItem('portalDataV4', JSON.stringify(stateData));
+            localStorage.setItem('portalDataV5', JSON.stringify(stateData));
             
             customAlert("Berhasil", "Pengaturan sistem telah diperbarui.");
             keluarAdmin();
