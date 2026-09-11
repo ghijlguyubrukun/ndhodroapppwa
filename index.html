@@ -15,7 +15,7 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     
     <style>
-        body { background: #0f172a; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; overscroll-behavior: none; }
+        body { background: linear-gradient(135deg, #1e1b4b, #0f172a, #064e3b); background-attachment: fixed; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; overscroll-behavior: none; }
         .page-transition { transition: all 0.3s ease; }
         .page-active { opacity: 1; visibility: visible; }
         .page-hidden { opacity: 0; visibility: hidden; position: absolute; pointer-events: none; }
@@ -64,16 +64,6 @@
             <!-- Render via JS -->
         </div>
 
-        <!-- Pengumuman & Agenda -->
-        <div class="mb-6">
-            <h3 class="text-xs font-bold mb-3 text-blue-400 flex items-center gap-2 uppercase tracking-wider">
-                <i class="fa-solid fa-bullhorn"></i> Informasi & Agenda
-            </h3>
-            <div id="daftar-pengumuman" class="space-y-3">
-                <!-- Render via JS -->
-            </div>
-        </div>
-
         <!-- Kontak Darurat -->
         <div class="mb-6">
             <h3 class="text-xs font-bold mb-3 text-red-400 flex items-center gap-2 uppercase tracking-wider">
@@ -102,13 +92,10 @@
             </button>
         </div>
 
-        <!-- Tombol Admin & Tes Alarm -->
-        <div class="flex justify-between items-center mt-2 pt-4 border-t border-slate-800">
-            <button onclick="triggerAlarm()" class="text-slate-600 hover:text-red-400 text-[10px] uppercase font-bold tracking-widest transition">
-                <i class="fa-solid fa-bell mr-1"></i> Uji Alarm
-            </button>
+        <!-- Tombol Admin -->
+        <div class="flex justify-end items-center mt-2 pt-4 border-t border-slate-800">
             <button id="btn-admin" onclick="bukaModalLogin()" class="text-slate-600 hover:text-slate-400 text-[10px] uppercase font-bold tracking-widest transition">
-                <i class="fa-solid fa-gear mr-1"></i> Admin
+                <i class="fa-solid fa-gear mr-1"></i> Pengaturan Admin
             </button>
         </div>
     </div>
@@ -173,16 +160,6 @@
                 </div>
             </div>
 
-            <!-- Pengaturan Pengumuman -->
-            <div class="bg-slate-800 p-4 rounded-xl border border-slate-700 shadow-md">
-                <div class="flex justify-between items-center mb-3">
-                    <h3 class="text-xs font-bold text-purple-400 uppercase tracking-wider">Pengumuman & Agenda</h3>
-                    <button onclick="tambahAdminPengumuman()" class="text-[10px] bg-purple-600 hover:bg-purple-500 text-white px-2 py-1 rounded shadow">+ Tambah</button>
-                </div>
-                <div id="admin-pengumuman-container" class="space-y-4">
-                    <!-- Form pengumuman di-generate oleh JS -->
-                </div>
-            </div>
         </div>
 
         <div class="bg-slate-800 border-t border-slate-700 p-4 shrink-0 shadow-lg absolute bottom-0 w-full z-10">
@@ -423,33 +400,6 @@
                 <a href="tel:${d.pdam}" class="bg-gradient-to-br from-slate-800 to-slate-800/50 p-3 rounded-2xl border border-slate-700/50 hover:border-cyan-500/50 flex flex-col items-center justify-center gap-2 transition active:scale-95 shadow-md"><div class="w-10 h-10 rounded-full bg-cyan-500/20 flex items-center justify-center text-cyan-400 text-lg shadow-[0_0_15px_rgba(6,182,212,0.2)]"><i class="fa-solid fa-droplet"></i></div><span class="text-[10px] font-bold text-slate-300 text-center">PDAM</span></a>
             `;
 
-            // Render Pengumuman & Agenda
-            const daftarP = document.getElementById('daftar-pengumuman');
-            if (!stateData.pengumuman || stateData.pengumuman.length === 0) {
-                daftarP.innerHTML = `<div class="text-[10px] text-slate-500 italic text-center p-3 bg-slate-800/50 rounded-xl">Belum ada informasi.</div>`;
-            } else {
-                daftarP.innerHTML = stateData.pengumuman.map((p, i) => {
-                    const tanggalFormat = p.tanggal ? new Date(p.tanggal).toLocaleDateString('id-ID', {day: 'numeric', month: 'long', year: 'numeric'}) : '';
-                    return `
-                    <div class="bg-slate-800 p-4 rounded-xl border border-slate-700 relative shadow-md">
-                        <h4 class="text-sm font-bold text-white mb-1 pr-8">${p.judul}</h4>
-                        <div class="text-[9px] text-blue-400 font-medium mb-2"><i class="fa-regular fa-calendar mr-1"></i> ${tanggalFormat}</div>
-                        <p class="text-xs text-slate-300 leading-relaxed">${p.isi}</p>
-                        
-                        <button onclick="sharePengumumanWA(${i})" class="absolute top-4 right-4 text-slate-400 hover:text-emerald-400 transition" title="Bagikan ke WhatsApp">
-                            <i class="fa-solid fa-share-nodes text-lg"></i>
-                        </button>
-                    </div>
-                `}).join('');
-            }
-        }
-
-        // Fitur Share WhatsApp
-        function sharePengumumanWA(index) {
-            const p = stateData.pengumuman[index];
-            const tanggalFormat = p.tanggal ? new Date(p.tanggal).toLocaleDateString('id-ID', {day: 'numeric', month: 'long', year: 'numeric'}) : '';
-            const textWA = `*INFORMASI WARGA*\n\n📌 *${p.judul}*\n📅 ${tanggalFormat}\n\n${p.isi}\n\n_Info dari: ${stateData.profil.nama}_`;
-            window.open(`https://wa.me/?text=${encodeURIComponent(textWA)}`, '_blank');
         }
 
         function kirimLaporan() {
