@@ -20,6 +20,14 @@
         .page-active { opacity: 1; visibility: visible; }
         .page-hidden { opacity: 0; visibility: hidden; position: absolute; pointer-events: none; }
         
+        /* Animasi Install PWA */
+        @keyframes pulseGlow {
+            0% { box-shadow: 0 0 0 0 rgba(59, 130, 246, 0.7); }
+            70% { box-shadow: 0 0 0 15px rgba(59, 130, 246, 0); }
+            100% { box-shadow: 0 0 0 0 rgba(59, 130, 246, 0); }
+        }
+        .animate-glow { animation: pulseGlow 2s infinite; }
+
         /* Animasi Alarm */
         @keyframes flashRed {
             0% { background-color: rgba(220, 38, 38, 0.9); }
@@ -71,37 +79,8 @@
             <h3 class="text-xs font-bold mb-3 text-red-400 flex items-center gap-2 uppercase tracking-wider">
                 <i class="fa-solid fa-shield-heart"></i> Kontak Darurat
             </h3>
-            <div class="grid grid-cols-3 gap-2 sm:gap-3">
-                <a href="tel:110" class="bg-gradient-to-br from-slate-800 to-slate-800/50 p-3 rounded-2xl border border-slate-700/50 hover:border-blue-500/50 flex flex-col items-center justify-center gap-2 transition active:scale-95 shadow-md">
-                    <div class="w-10 h-10 rounded-full bg-blue-500/20 flex items-center justify-center text-blue-400 text-lg shadow-[0_0_15px_rgba(59,130,246,0.2)]">
-                        <i class="fa-solid fa-building-shield"></i>
-                    </div>
-                    <span class="text-[10px] font-bold text-slate-300 text-center">Polisi</span>
-                </a>
-                <a href="tel:113" class="bg-gradient-to-br from-slate-800 to-slate-800/50 p-3 rounded-2xl border border-slate-700/50 hover:border-red-500/50 flex flex-col items-center justify-center gap-2 transition active:scale-95 shadow-md">
-                    <div class="w-10 h-10 rounded-full bg-red-500/20 flex items-center justify-center text-red-400 text-lg shadow-[0_0_15px_rgba(239,68,68,0.2)]">
-                        <i class="fa-solid fa-fire-extinguisher"></i>
-                    </div>
-                    <span class="text-[10px] font-bold text-slate-300 text-center">Pemadam</span>
-                </a>
-                <a href="tel:119" class="bg-gradient-to-br from-slate-800 to-slate-800/50 p-3 rounded-2xl border border-slate-700/50 hover:border-emerald-500/50 flex flex-col items-center justify-center gap-2 transition active:scale-95 shadow-md">
-                    <div class="w-10 h-10 rounded-full bg-emerald-500/20 flex items-center justify-center text-emerald-400 text-lg shadow-[0_0_15px_rgba(16,185,129,0.2)]">
-                        <i class="fa-solid fa-truck-medical"></i>
-                    </div>
-                    <span class="text-[10px] font-bold text-slate-300 text-center">Ambulans</span>
-                </a>
-                <a href="tel:123" class="bg-gradient-to-br from-slate-800 to-slate-800/50 p-3 rounded-2xl border border-slate-700/50 hover:border-yellow-500/50 flex flex-col items-center justify-center gap-2 transition active:scale-95 shadow-md">
-                    <div class="w-10 h-10 rounded-full bg-yellow-500/20 flex items-center justify-center text-yellow-400 text-lg shadow-[0_0_15px_rgba(234,179,8,0.2)]">
-                        <i class="fa-solid fa-bolt"></i>
-                    </div>
-                    <span class="text-[10px] font-bold text-slate-300 text-center">PLN</span>
-                </a>
-                <a href="tel:128" class="bg-gradient-to-br from-slate-800 to-slate-800/50 p-3 rounded-2xl border border-slate-700/50 hover:border-cyan-500/50 flex flex-col items-center justify-center gap-2 transition active:scale-95 shadow-md">
-                    <div class="w-10 h-10 rounded-full bg-cyan-500/20 flex items-center justify-center text-cyan-400 text-lg shadow-[0_0_15px_rgba(6,182,212,0.2)]">
-                        <i class="fa-solid fa-droplet"></i>
-                    </div>
-                    <span class="text-[10px] font-bold text-slate-300 text-center">PDAM</span>
-                </a>
+            <div id="daftar-darurat" class="grid grid-cols-3 gap-2 sm:gap-3">
+                <!-- Render via JS -->
             </div>
         </div>
 
@@ -117,8 +96,9 @@
 
         <!-- Tombol PWA Instal Aplikasi Cerdas (Hanya Muncul jika didukung) -->
         <div id="install-container" class="hidden mb-6">
-            <button onclick="instalAplikasi()" class="w-full py-3.5 bg-gradient-to-r from-blue-600 to-blue-500 rounded-xl text-xs font-bold shadow-lg shadow-blue-500/30 active:scale-95 transition flex items-center justify-center gap-2 border border-blue-400">
-                <i class="fa-solid fa-download"></i> INSTAL APLIKASI
+            <button onclick="instalAplikasi()" class="w-full py-3 bg-gradient-to-r from-blue-600 to-indigo-600 rounded-xl font-bold active:scale-95 transition-all flex flex-col items-center justify-center gap-1 border border-blue-400/50 animate-glow">
+                <div class="flex items-center gap-2 text-white text-xs"><i class="fa-solid fa-download"></i> INSTAL APLIKASI</div>
+                <div class="text-[9px] text-blue-200 font-medium">Akses lebih cepat & offline mode</div>
             </button>
         </div>
 
@@ -170,7 +150,16 @@
                 <textarea id="admin-tagline" class="w-full p-2.5 mb-3 bg-slate-900 rounded-lg text-sm border border-slate-700 focus:border-blue-500 outline-none text-white" rows="2"></textarea>
                 
                 <label class="text-[10px] text-slate-400 mb-1 block font-bold uppercase">Nomor WA Ketua (Awalan 62)</label>
-                <input type="number" id="admin-wa" placeholder="62812..." class="w-full p-2.5 bg-slate-900 rounded-lg text-sm border border-slate-700 focus:border-blue-500 outline-none text-white">
+                <input type="number" id="admin-wa" placeholder="62812..." class="w-full p-2.5 mb-4 bg-slate-900 rounded-lg text-sm border border-slate-700 focus:border-blue-500 outline-none text-white">
+                
+                <h3 class="text-[10px] text-red-400 mb-2 mt-2 block font-bold uppercase border-b border-slate-700 pb-1">Kontak Darurat</h3>
+                <div class="grid grid-cols-2 gap-3 mb-2">
+                    <div><label class="text-[9px] text-slate-500">Polisi</label><input type="number" id="admin-darurat-polisi" class="w-full p-2 bg-slate-900 rounded border border-slate-700 text-xs text-white"></div>
+                    <div><label class="text-[9px] text-slate-500">Pemadam</label><input type="number" id="admin-darurat-pemadam" class="w-full p-2 bg-slate-900 rounded border border-slate-700 text-xs text-white"></div>
+                    <div><label class="text-[9px] text-slate-500">Ambulans</label><input type="number" id="admin-darurat-ambulans" class="w-full p-2 bg-slate-900 rounded border border-slate-700 text-xs text-white"></div>
+                    <div><label class="text-[9px] text-slate-500">PLN</label><input type="number" id="admin-darurat-pln" class="w-full p-2 bg-slate-900 rounded border border-slate-700 text-xs text-white"></div>
+                    <div class="col-span-2"><label class="text-[9px] text-slate-500">PDAM</label><input type="number" id="admin-darurat-pdam" class="w-full p-2 bg-slate-900 rounded border border-slate-700 text-xs text-white"></div>
+                </div>
             </div>
 
             <!-- Pengaturan Menu -->
@@ -240,6 +229,7 @@
         let stateData = {
             pin: "123456",
             waKetua: "628123456789",
+            darurat: { polisi: "110", pemadam: "113", ambulans: "119", pln: "123", pdam: "128" },
             profil: { 
                 nama: "Portal Warga",
                 tagline: "Bersama mewujudkan lingkungan yang aman dan nyaman."
@@ -423,6 +413,16 @@
                 </a>
             `).join('');
 
+            // Render Kontak Darurat
+            const d = stateData.darurat || { polisi: "110", pemadam: "113", ambulans: "119", pln: "123", pdam: "128" };
+            document.getElementById('daftar-darurat').innerHTML = `
+                <a href="tel:${d.polisi}" class="bg-gradient-to-br from-slate-800 to-slate-800/50 p-3 rounded-2xl border border-slate-700/50 hover:border-blue-500/50 flex flex-col items-center justify-center gap-2 transition active:scale-95 shadow-md"><div class="w-10 h-10 rounded-full bg-blue-500/20 flex items-center justify-center text-blue-400 text-lg shadow-[0_0_15px_rgba(59,130,246,0.2)]"><i class="fa-solid fa-building-shield"></i></div><span class="text-[10px] font-bold text-slate-300 text-center">Polisi</span></a>
+                <a href="tel:${d.pemadam}" class="bg-gradient-to-br from-slate-800 to-slate-800/50 p-3 rounded-2xl border border-slate-700/50 hover:border-red-500/50 flex flex-col items-center justify-center gap-2 transition active:scale-95 shadow-md"><div class="w-10 h-10 rounded-full bg-red-500/20 flex items-center justify-center text-red-400 text-lg shadow-[0_0_15px_rgba(239,68,68,0.2)]"><i class="fa-solid fa-fire-extinguisher"></i></div><span class="text-[10px] font-bold text-slate-300 text-center">Pemadam</span></a>
+                <a href="tel:${d.ambulans}" class="bg-gradient-to-br from-slate-800 to-slate-800/50 p-3 rounded-2xl border border-slate-700/50 hover:border-emerald-500/50 flex flex-col items-center justify-center gap-2 transition active:scale-95 shadow-md"><div class="w-10 h-10 rounded-full bg-emerald-500/20 flex items-center justify-center text-emerald-400 text-lg shadow-[0_0_15px_rgba(16,185,129,0.2)]"><i class="fa-solid fa-truck-medical"></i></div><span class="text-[10px] font-bold text-slate-300 text-center">Ambulans</span></a>
+                <a href="tel:${d.pln}" class="bg-gradient-to-br from-slate-800 to-slate-800/50 p-3 rounded-2xl border border-slate-700/50 hover:border-yellow-500/50 flex flex-col items-center justify-center gap-2 transition active:scale-95 shadow-md"><div class="w-10 h-10 rounded-full bg-yellow-500/20 flex items-center justify-center text-yellow-400 text-lg shadow-[0_0_15px_rgba(234,179,8,0.2)]"><i class="fa-solid fa-bolt"></i></div><span class="text-[10px] font-bold text-slate-300 text-center">PLN</span></a>
+                <a href="tel:${d.pdam}" class="bg-gradient-to-br from-slate-800 to-slate-800/50 p-3 rounded-2xl border border-slate-700/50 hover:border-cyan-500/50 flex flex-col items-center justify-center gap-2 transition active:scale-95 shadow-md"><div class="w-10 h-10 rounded-full bg-cyan-500/20 flex items-center justify-center text-cyan-400 text-lg shadow-[0_0_15px_rgba(6,182,212,0.2)]"><i class="fa-solid fa-droplet"></i></div><span class="text-[10px] font-bold text-slate-300 text-center">PDAM</span></a>
+            `;
+
             // Render Pengumuman & Agenda
             const daftarP = document.getElementById('daftar-pengumuman');
             if (!stateData.pengumuman || stateData.pengumuman.length === 0) {
@@ -532,6 +532,13 @@
             document.getElementById('admin-tagline').value = stateData.profil.tagline || "";
             document.getElementById('admin-wa').value = stateData.waKetua;
             
+            const daruratData = stateData.darurat || { polisi: "110", pemadam: "113", ambulans: "119", pln: "123", pdam: "128" };
+            document.getElementById('admin-darurat-polisi').value = daruratData.polisi;
+            document.getElementById('admin-darurat-pemadam').value = daruratData.pemadam;
+            document.getElementById('admin-darurat-ambulans').value = daruratData.ambulans;
+            document.getElementById('admin-darurat-pln').value = daruratData.pln;
+            document.getElementById('admin-darurat-pdam').value = daruratData.pdam;
+            
             adminTautanTemp = JSON.parse(JSON.stringify(stateData.tautan));
             adminPengumumanTemp = JSON.parse(JSON.stringify(stateData.pengumuman || []));
             
@@ -596,6 +603,13 @@
             stateData.profil.nama = document.getElementById('admin-nama').value;
             stateData.profil.tagline = document.getElementById('admin-tagline').value;
             stateData.waKetua = document.getElementById('admin-wa').value;
+            stateData.darurat = {
+                polisi: document.getElementById('admin-darurat-polisi').value || "110",
+                pemadam: document.getElementById('admin-darurat-pemadam').value || "113",
+                ambulans: document.getElementById('admin-darurat-ambulans').value || "119",
+                pln: document.getElementById('admin-darurat-pln').value || "123",
+                pdam: document.getElementById('admin-darurat-pdam').value || "128"
+            };
             stateData.tautan = adminTautanTemp;
             stateData.pengumuman = adminPengumumanTemp;
             
