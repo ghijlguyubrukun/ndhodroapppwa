@@ -222,7 +222,7 @@
             },
             tautan: [
                 { judul: "NdhodroApp", url: "https://ghijlguyubrukun.github.io/NdhodroApp/", ikonUrl: "data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAyNCAyNCIgZmlsbD0ibm9uZSIgc3Ryb2tlPSIjM2I4MmY2IiBzdHJva2Utd2lkdGg9IjIiIHN0cm9rZS1saW5lY2FwPSJyb3VuZCIgc3Ryb2tlLWxpbmVqb2luPSJyb3VuZCI+PHBhdGggZD0iTTEyIDJMMiA3bDEwIDUgMTAtNS0xMC01ek0yIDE3bDEwIDUgMTAtNU0yIDEybDEwIDUgMTAtNSIvPjwvc3ZnPg==" },
-                { judul: "E-Jimpitan", url: "https://ghijlguyubrukun.github.io/e-jimpitan-web/", ikonUrl: "data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAyNCAyNCIgZmlsbD0ibm9uZSIgc3Ryb2tlPSIjZWFiMzMDIiBzdHJva2Utd2lkdGg9IjIiIHN0cm9rZS1saW5lY2FwPSJyb3VuZCIgc3Ryb2tlLWxpbmVqb2luPSJyb3VuZCI+PHBhdGggZD0iTTEyIDJ2MjBtLTctN2w3IDcgNy03Ii8+PC9zdmc+" }
+                { judul: "E-Jimpitan", url: "https://ghijlguyubrukun.github.io/e-jimpitan-web/", ikonUrl: "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23eab308' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M20 12V8H6a2 2 0 0 1-2-2c0-1.1.9-2 2-2h12v4'/%3E%3Cpath d='M4 6v12c0 1.1.9 2 2 2h14v-4'/%3E%3Cpath d='M18 12a2 2 0 0 0-2 2c0 1.1.9 2 2 2h4v-4h-4z'/%3E%3C/svg%3E" }
             ],
             pengumuman: [
                 { judul: "Kerja Bakti Warga", tanggal: "2026-07-05", isi: "Diharapkan kehadirannya untuk kegiatan bersih-bersih lingkungan hari Minggu besok." }
@@ -382,7 +382,7 @@
 
         // --- SISTEM UI & FUNGSI APLIKASI ---
         function initApp() {
-            const saved = localStorage.getItem('portalDataV5');
+            const saved = localStorage.getItem('portalDataV6');
             if (saved) { try { stateData = JSON.parse(saved); } catch(e){} }
             renderUtama();
             setInterval(updateTime, 1000);
@@ -584,7 +584,7 @@
             stateData.pengumuman = adminPengumumanTemp;
             
             // Simpan pakai key baru agar reset jika sebelumnya ada error
-            localStorage.setItem('portalDataV5', JSON.stringify(stateData));
+            localStorage.setItem('portalDataV6', JSON.stringify(stateData));
             
             customAlert("Berhasil", "Pengaturan sistem telah diperbarui.");
             keluarAdmin();
