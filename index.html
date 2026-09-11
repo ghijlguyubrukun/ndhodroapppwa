@@ -84,8 +84,8 @@
             <button onclick="kirimLaporan()" class="w-full py-3 bg-emerald-600 rounded-xl text-xs font-bold hover:bg-emerald-500 transition shadow-lg shadow-emerald-900/30 active:scale-95 relative z-10">KIRIM VIA WHATSAPP</button>
         </div>
 
-        <!-- Tombol PWA Instal Aplikasi Cerdas (Hanya Muncul jika didukung) -->
-        <div id="install-container" class="hidden mb-6">
+        <!-- Tombol PWA Instal Aplikasi -->
+        <div id="install-container" class="mb-6">
             <button onclick="instalAplikasi()" class="w-full py-3 bg-gradient-to-r from-blue-600 to-indigo-600 rounded-xl font-bold active:scale-95 transition-all flex flex-col items-center justify-center gap-1 border border-blue-400/50 animate-glow">
                 <div class="flex items-center gap-2 text-white text-xs"><i class="fa-solid fa-download"></i> INSTAL APLIKASI</div>
                 <div class="text-[9px] text-blue-200 font-medium">Akses lebih cepat & offline mode</div>
@@ -208,7 +208,7 @@
             waKetua: "628123456789",
             darurat: { polisi: "110", pemadam: "113", ambulans: "119", pln: "123", pdam: "128" },
             profil: { 
-                nama: "Portal Warga",
+                nama: "Portal Warga Blok GHIJL",
                 tagline: "Bersama mewujudkan lingkungan yang aman dan nyaman."
             },
             tautan: [
@@ -226,8 +226,8 @@
         // --- SISTEM PWA & TOMBOL INSTAL CERDAS ---
         const PWA_ICON_BASE64 = "data:image/svg+xml;base64,PHN2ZyB4bWxucz0naHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmcnIHZpZXdCb3g9JzAgMCAyNCAyNCcgZmlsbD0nIzNiODJmNic+PHBhdGggZD0nTTQgMmgxNmEyIDIgMCAwIDEgMiAydjE2YTIgMiAwIDAgMS0yIDJINGEyIDIgMCAwIDEtMi0yVjRhMiAyIDAgMCAxIDItMnoiLz48L3N2Zz4=";
         const manifestData = {
-            "name": "Portal Warga",
-            "short_name": "Portal Warga",
+            "name": "Portal Warga Blok GHIJL",
+            "short_name": "Portal Warga Blok GHIJL",
             "start_url": window.location.href,
             "display": "standalone",
             "background_color": "#0f172a",
@@ -250,8 +250,6 @@
             e.preventDefault();
             // Simpan event agar bisa dipicu nanti
             deferredPrompt = e;
-            // Tampilkan tombol Instal
-            document.getElementById('install-container').classList.remove('hidden');
         });
 
         function instalAplikasi() {
@@ -260,10 +258,12 @@
                 deferredPrompt.prompt();
                 deferredPrompt.userChoice.then((choiceResult) => {
                     if (choiceResult.outcome === 'accepted') {
-                        document.getElementById('install-container').classList.add('hidden');
+                        document.getElementById('install-container').style.display = 'none';
                     }
                     deferredPrompt = null;
                 });
+            } else {
+                customAlert("Instal Aplikasi", "Buka menu browser Anda (titik tiga) lalu pilih 'Tambahkan ke Layar Utama' (Add to Home screen) atau 'Instal Aplikasi'. Di iPhone (Safari), ketuk tombol Bagikan (Share) lalu pilih 'Tambah ke Layar Utama'.");
             }
         }
 
@@ -364,7 +364,7 @@
 
         // --- SISTEM UI & FUNGSI APLIKASI ---
         function initApp() {
-            const saved = localStorage.getItem('portalDataV3');
+            const saved = localStorage.getItem('portalDataV4');
             if (saved) { try { stateData = JSON.parse(saved); } catch(e){} }
             renderUtama();
             setInterval(updateTime, 1000);
@@ -564,7 +564,7 @@
             stateData.pengumuman = adminPengumumanTemp;
             
             // Simpan pakai key baru agar reset jika sebelumnya ada error
-            localStorage.setItem('portalDataV3', JSON.stringify(stateData));
+            localStorage.setItem('portalDataV4', JSON.stringify(stateData));
             
             customAlert("Berhasil", "Pengaturan sistem telah diperbarui.");
             keluarAdmin();
