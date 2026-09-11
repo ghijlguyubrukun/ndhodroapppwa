@@ -6,6 +6,7 @@
     <title>Portal Warga Blok GHIJL</title>
     
     <!-- PWA Meta Tags -->
+    <link rel="manifest" href="manifest.json">
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
     <meta name="mobile-web-app-capable" content="yes">
@@ -48,15 +49,16 @@
     <div id="view-public" class="w-full max-w-md p-5 page-active page-transition h-screen overflow-y-auto pb-24 relative z-10">
         
         <!-- Header & Tagline -->
-        <div class="flex items-start justify-between gap-3 mb-6 mt-2">
-            <div class="flex-1 min-w-0 pr-1">
-                <h1 id="profil-nama" class="text-xl sm:text-[22px] font-black tracking-tight text-slate-100 leading-[1.15] break-words">Portal Warga Blok GHIJL</h1>
-                <p id="profil-tagline" class="text-[10px] text-blue-400 font-medium mt-1.5 leading-snug break-words">...</p>
+        <div class="flex items-center justify-between mb-4 mt-2">
+            <img id="header-logo" src="" alt="Logo" class="w-12 h-12 rounded-xl object-cover shrink-0 shadow-md border-2 border-slate-700 hidden bg-slate-800">
+            <div class="text-right bg-slate-800/80 px-3 py-1.5 rounded-xl border border-slate-700 shrink-0 shadow-lg ml-auto">
+                <div id="clock" class="text-lg font-mono font-bold text-emerald-400 leading-none">00:00</div>
+                <div id="date" class="text-[8px] text-slate-400 uppercase tracking-wide mt-1">...</div>
             </div>
-            <div class="text-right bg-slate-800/80 px-3 py-2 rounded-xl border border-slate-700 shrink-0 shadow-lg">
-                <div id="clock" class="text-xl font-mono font-bold text-emerald-400">00:00</div>
-                <div id="date" class="text-[9px] text-slate-400 uppercase tracking-wide">...</div>
-            </div>
+        </div>
+        <div class="mb-6 relative z-10">
+            <h1 id="profil-nama" class="text-2xl font-black tracking-tight text-slate-100 leading-[1.1] break-words">Portal Warga Blok GHIJL</h1>
+            <p id="profil-tagline" class="text-[11px] text-blue-400 font-medium mt-1.5 leading-snug break-words">...</p>
         </div>
 
         <!-- Menu Grid 2 Kolom (Ikon Gambar) -->
@@ -139,6 +141,9 @@
         <div class="p-4 space-y-6 flex-1 overflow-y-auto pb-24">
             <!-- Pengaturan Umum -->
             <div class="bg-slate-800 p-4 rounded-xl border border-slate-700 shadow-md">
+                <label class="text-[10px] text-slate-400 mb-1 block font-bold uppercase">URL Logo Header (Opsional)</label>
+                <input type="text" id="admin-logo" placeholder="URL gambar atau kosongkan..." class="w-full p-2.5 mb-3 bg-slate-900 rounded-lg text-sm border border-slate-700 focus:border-blue-500 outline-none text-white">
+
                 <label class="text-[10px] text-slate-400 mb-1 block font-bold uppercase">Nama Portal</label>
                 <input type="text" id="admin-nama" class="w-full p-2.5 mb-3 bg-slate-900 rounded-lg text-sm border border-slate-700 focus:border-blue-500 outline-none text-white">
                 
@@ -217,6 +222,7 @@
             waKetua: "628123456789",
             darurat: { polisi: "110", pemadam: "113", ambulans: "119", pln: "123", pdam: "128" },
             profil: { 
+                logoUrl: "",
                 nama: "Portal Warga Blok GHIJL",
                 tagline: "Bersama mewujudkan lingkungan yang aman dan nyaman."
             },
@@ -233,23 +239,9 @@
         let adminPengumumanTemp = [];
 
         // --- SISTEM PWA & TOMBOL INSTAL CERDAS ---
-        const PWA_ICON_BASE64 = "data:image/svg+xml;base64,PHN2ZyB4bWxucz0naHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmcnIHZpZXdCb3g9JzAgMCAyNCAyNCcgZmlsbD0nIzNiODJmNic+PHBhdGggZD0nTTQgMmgxNmEyIDIgMCAwIDEgMiAydjE2YTIgMiAwIDAgMS0yIDJINGEyIDIgMCAwIDEtMi0yVjRhMiAyIDAgMCAxIDItMnoiLz48L3N2Zz4=";
-        const manifestData = {
-            "name": "Portal Warga Blok GHIJL",
-            "short_name": "Portal GHIJL",
-            "start_url": window.location.href,
-            "display": "standalone",
-            "background_color": "#0f172a",
-            "theme_color": "#0f172a",
-            "icons": [{"src": PWA_ICON_BASE64, "sizes": "192x192 512x512", "type": "image/svg+xml", "purpose": "any maskable"}]
-        };
-        const manifestBlob = new Blob([JSON.stringify(manifestData)], {type: 'application/manifest+json'});
-        document.head.insertAdjacentHTML('beforeend', `<link rel="manifest" href="${URL.createObjectURL(manifestBlob)}">`);
-
-        const swCode = `self.addEventListener('install', e => self.skipWaiting()); self.addEventListener('activate', e => self.clients.claim()); self.addEventListener('fetch', e => {});`;
         if ('serviceWorker' in navigator) {
             window.addEventListener('load', () => {
-                navigator.serviceWorker.register(URL.createObjectURL(new Blob([swCode], {type: 'application/javascript'}))).catch(()=>{});
+                navigator.serviceWorker.register('./sw.js').catch(()=>{});
             });
         }
 
@@ -382,7 +374,7 @@
 
         // --- SISTEM UI & FUNGSI APLIKASI ---
         function initApp() {
-            const saved = localStorage.getItem('portalDataV6');
+            const saved = localStorage.getItem('portalDataV7');
             if (saved) { try { stateData = JSON.parse(saved); } catch(e){} }
             renderUtama();
             setInterval(updateTime, 1000);
@@ -401,6 +393,14 @@
             document.getElementById('profil-nama').textContent = stateData.profil.nama;
             document.getElementById('profil-tagline').textContent = stateData.profil.tagline || "";
             document.title = stateData.profil.nama;
+            
+            const logoEl = document.getElementById('header-logo');
+            if (stateData.profil.logoUrl && stateData.profil.logoUrl.trim() !== "") {
+                logoEl.src = stateData.profil.logoUrl;
+                logoEl.classList.remove('hidden');
+            } else {
+                logoEl.classList.add('hidden');
+            }
             
             // Render Tautan / Menu Grid
             document.getElementById('daftar-tautan').innerHTML = stateData.tautan.map(t => `
@@ -498,6 +498,7 @@
             document.getElementById('view-public').classList.replace('page-active', 'page-hidden');
             document.getElementById('view-admin').classList.replace('page-hidden', 'page-active');
             
+            document.getElementById('admin-logo').value = stateData.profil.logoUrl || "";
             document.getElementById('admin-nama').value = stateData.profil.nama;
             document.getElementById('admin-tagline').value = stateData.profil.tagline || "";
             document.getElementById('admin-wa').value = stateData.waKetua;
@@ -570,6 +571,7 @@
         function hapusAdminPengumuman(index) { adminPengumumanTemp.splice(index, 1); renderFormPengumuman(); }
 
         function simpanAdmin() {
+            stateData.profil.logoUrl = document.getElementById('admin-logo').value;
             stateData.profil.nama = document.getElementById('admin-nama').value;
             stateData.profil.tagline = document.getElementById('admin-tagline').value;
             stateData.waKetua = document.getElementById('admin-wa').value;
@@ -584,7 +586,7 @@
             stateData.pengumuman = adminPengumumanTemp;
             
             // Simpan pakai key baru agar reset jika sebelumnya ada error
-            localStorage.setItem('portalDataV6', JSON.stringify(stateData));
+            localStorage.setItem('portalDataV7', JSON.stringify(stateData));
             
             customAlert("Berhasil", "Pengaturan sistem telah diperbarui.");
             keluarAdmin();
